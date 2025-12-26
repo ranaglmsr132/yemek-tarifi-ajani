@@ -32,20 +32,21 @@ def anahtar_kelimeleri_cikar(sorgu):
 def veritabani_olustur():
     documents = []
     
-    # 1. YOL TESPİTİ: Streamlit ana dizinden çalışır. 
-    # 'kaynak' klasörü ana dizinde olduğu için direkt adını kullanıyoruz.
-    path_to_check = "kaynak" 
+    # 1. Klasör ismini buraya yazın (GitHub'da gördüğünüzün aynısı olmalı)
+    hedef_klasor = "kaynak" 
 
-    # Eğer klasör bulunamazsa alternatif yolları dene
-    if not os.path.exists(path_to_check):
-        # src içindeyse bir üst klasöre bak
-        alt_path = os.path.join("..", "kaynak")
-        if os.path.exists(alt_path):
-            path_to_check = alt_path
+    # Mevcut dizindeki tüm dosyaları ve klasörleri listele (Hata ayıklama için)
+    mevcut_dosyalar = os.listdir(".")
+    st.write(f"Ana dizindeki dosyalar: {mevcut_dosyalar}") # Bu satır klasörün adını görmemizi sağlar
 
-    if not os.path.exists(path_to_check):
-        st.error(f"❌ Klasör bulunamadı! Aranan yol: {os.path.abspath(path_to_check)}")
-        st.info("GitHub'da 'kaynak' klasörünün ismini ve yerini kontrol edin.")
+    # Yol tespiti
+    if os.path.exists(hedef_klasor):
+        path_to_check = hedef_klasor
+    elif os.path.exists(os.path.join("src", hedef_klasor)):
+        path_to_check = os.path.join("src", hedef_klasor)
+    else:
+        st.error(f"❌ '{hedef_klasor}' klasörü hiçbir yerde bulunamadı!")
+        st.info(f"Sistemdeki mevcut dosyalar: {mevcut_dosyalar}")
         return
 
     try:
@@ -53,24 +54,18 @@ def veritabani_olustur():
         loader = DirectoryLoader(path_to_check, glob="**/*.txt")
         documents = loader.load()
     except Exception as e:
-        st.error(f"Dosyalar yüklenirken hata oluştu: {e}")
+        st.error(f"Yükleme hatası: {e}")
         return
     
     if not documents:
-        st.warning("⚠️ 'kaynak' klasörü bulundu ama içinde .txt dosyası yok!")
+        st.warning(f"⚠️ '{path_to_check}' klasörü bulundu ama içinde .txt dosyası yok!")
         return
 
-    # 3. PARÇALARA AYIR VE VERİTABANINA KAYDET
+    # 3. VERİTABANI OLUŞTURMA
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = splitter.split_documents(documents)
-
-    Chroma.from_documents(
-        documents=texts,
-        embedding=embeddings,
-        persist_directory=PERSIST_DIRECTORY
-    )
+    Chroma.from_documents(documents=texts, embedding=embeddings, persist_directory=PERSIST_DIRECTORY)
     st.success("✅ Veritabanı başarıyla güncellendi.")
-
 def yemek_tarifi_ajani(sorgu, max_sonuc=5):
     # Eğer veritabanı klasörü yoksa oluştur
     if not os.path.exists(PERSIST_DIRECTORY):
