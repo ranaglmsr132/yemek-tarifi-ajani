@@ -32,28 +32,38 @@ def anahtar_kelimeleri_cikar(sorgu):
 def veritabani_olustur():
     documents = []
     
-    # Klasör kontrolü
-    if not os.path.exists(TARIFLER_DIR):
-        st.error(f"❌ Hata: '{TARIFLER_DIR}' klasörü bulunamadı! Lütfen GitHub'da bu klasörün olduğundan emin olun.")
+    # 1. YOL TESPİTİ: Streamlit ana dizinden çalışır. 
+    # 'kaynak' klasörü ana dizinde olduğu için direkt adını kullanıyoruz.
+    path_to_check = "kaynak" 
+
+    # Eğer klasör bulunamazsa alternatif yolları dene
+    if not os.path.exists(path_to_check):
+        # src içindeyse bir üst klasöre bak
+        alt_path = os.path.join("..", "kaynak")
+        if os.path.exists(alt_path):
+            path_to_check = alt_path
+
+    if not os.path.exists(path_to_check):
+        st.error(f"❌ Klasör bulunamadı! Aranan yol: {os.path.abspath(path_to_check)}")
+        st.info("GitHub'da 'kaynak' klasörünün ismini ve yerini kontrol edin.")
         return
 
     try:
-        # Klasördeki .txt dosyalarını yükle
-        loader = DirectoryLoader(TARIFLER_DIR, glob="**/*.txt")
+        # 2. DOSYALARI YÜKLE
+        loader = DirectoryLoader(path_to_check, glob="**/*.txt")
         documents = loader.load()
     except Exception as e:
         st.error(f"Dosyalar yüklenirken hata oluştu: {e}")
         return
     
     if not documents:
-        st.warning("⚠️ Klasör boş veya içinde .txt dosyası bulunamadı!")
+        st.warning("⚠️ 'kaynak' klasörü bulundu ama içinde .txt dosyası yok!")
         return
 
-    # Metin parçalama
+    # 3. PARÇALARA AYIR VE VERİTABANINA KAYDET
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = splitter.split_documents(documents)
 
-    # Chroma veritabanını oluştur ve kaydet
     Chroma.from_documents(
         documents=texts,
         embedding=embeddings,
