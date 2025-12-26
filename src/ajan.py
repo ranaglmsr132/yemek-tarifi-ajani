@@ -33,7 +33,7 @@ def veritabani_olustur():
     documents = []
     
     # 1. Klasör ismini buraya yazın (GitHub'da gördüğünüzün aynısı olmalı)
-    hedef_klasor = "kaynak" 
+    hedef_klasor = "src" 
 
     # Mevcut dizindeki tüm dosyaları ve klasörleri listele (Hata ayıklama için)
     mevcut_dosyalar = os.listdir(".")
