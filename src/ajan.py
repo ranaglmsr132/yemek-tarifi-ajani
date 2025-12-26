@@ -92,22 +92,31 @@ if __name__ == "__main__":
 st.title("👨‍🍳 Yapay Zeka Yemek Tarifi Asistanı")
 st.markdown("Elinizdeki malzemeleri yazın veya bir yemek adı arayın!")
 
+# --- KULLANICI ARAYÜZÜ (STREAMLIT) ---
+# Üstteki teknik bilgileri (Ana dizindeki dosyalar vb.) görmek istemediğin için 
+# veritabani_olustur() içindeki st.write ve st.success satırlarını silebilir 
+# veya aşağıdaki gibi arayüzü temiz tutabilirsin.
+
+st.title("👨‍🍳 Yemek Tarifi Asistanı")
+st.markdown("Merhabalar! Bugün size hangi yemeği hazırlamamda yardımcı olabilirim?")
+
 # Kullanıcıdan girdi al
-sorgu = st.text_input("Ne pişirmek istersiniz?", placeholder="Örn: Patlıcanlı bir yemek tarifi öner")
+sorgu = st.text_input("Mesajınızı yazın:", placeholder="Örn: İçinde domates olan tarifleri listeler misin?")
 
 if sorgu:
-    with st.spinner("Tarif defterim karıştırılıyor..."):
-        # Senin yazdığın yemek_tarifi_ajani fonksiyonunu çağırıyoruz
+    with st.spinner("Sizin için tariflerimi kontrol ediyorum..."):
         sonuclar = yemek_tarifi_ajani(sorgu)
         
         if sonuclar:
-            st.success(f"{len(sonuclar)} adet uygun tarif bulundu!")
+            # Chatbot yanıtı gibi bir giriş metni
+            st.markdown(f"### 🤖 Asistanın Yanıtı:")
+            st.write(f"Harika bir seçim! Aradığınız kriterlere uygun **{len(sonuclar)} adet** tarif buldum. İşte detaylar:")
+            
+            # Sonuçları düz metin (text) olarak göster
             for i, doc in enumerate(sonuclar):
-                # Tarif başlığını dosya adından veya içeriğin ilk satırından alabiliriz
-                with st.expander(f"📖 Tarif {i+1}"):
-                    st.write(doc.page_content)
+                st.markdown(f"---")
+                st.markdown(f"#### 📝 Tarif {i+1}")
+                st.text(doc.page_content) # expaner yerine direkt text formatında gösterir
         else:
-            st.warning("Aradığınız kriterlere uygun bir tarif bulamadım. Farklı kelimelerle denemeye ne dersiniz?")
-
-# Hata ayıklama modunu kapatmak istersen aşağıdaki satırı yorum satırı yapabilirsin
-# st.write(f"Sistem Durumu: Veritabanı hazır.")
+            st.markdown("### 🤖 Asistanın Yanıtı:")
+            st.write("Üzgünüm, tarif defterimde buna uygun bir kayıt bulamadım. Başka bir malzeme veya yemek ismi denemek ister misiniz?")
