@@ -35,10 +35,17 @@ def veritabani_olustur():
         base = "src"
 
 
-    from langchain_community.document_loaders import TextLoader, DirectoryLoader
-
-    loader = DirectoryLoader('./belgeler_klasoru/', glob="./*.txt", loader_cls=TextLoader)
+    def veritabani_olustur():
+    documents = [] # Değişkeni burada tanımlayarak NameError'ı önleyin
+    try:
+        # Klasör yolunun doğruluğundan emin olun (Örn: 'src/veriler' veya './veriler')
+        loader = DirectoryLoader('./veriler_klasorunuz/', glob="**/*.txt") 
+        documents = loader.load()
+    except Exception as e:
+        st.error(f"Dosyalar yüklenirken hata oluştu: {e}")
     
+        return
+    # ... geri kalan işlemler
     if not documents:
         print("⚠️ Tarif dosyası bulunamadı!")
         return
