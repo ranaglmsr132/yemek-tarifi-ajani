@@ -7,7 +7,6 @@ import re
 import os
 
 # --- AYARLAR ---
-# Klasör ismini tam olarak belirttiğiniz gibi 'Tarifler' yapıyoruz
 HEDEF_KLASOR = "Tarifler"
 PERSIST_DIRECTORY = "chroma_db"
 
@@ -31,18 +30,17 @@ def anahtar_kelimeleri_cikar(sorgu):
 def veritabani_olustur():
     documents = []
     
-    # Klasör yolunu bul (Ana dizinde mi yoksa src içinde mi?)
     if os.path.exists(HEDEF_KLASOR):
         path_to_check = HEDEF_KLASOR
     elif os.path.exists(os.path.join("src", HEDEF_KLASOR)):
         path_to_check = os.path.join("src", HEDEF_KLASOR)
     else:
-        # Hata ayıklama için ekranda kısa bir uyarı bırakalım
+      
         st.error(f"❌ '{HEDEF_KLASOR}' klasörü GitHub'da bulunamadı!")
         return
 
     try:
-        # Daha güvenli olan TextLoader'ı kullanıyoruz
+        
         loader = DirectoryLoader(path_to_check, glob="**/*.txt", loader_cls=TextLoader)
         documents = loader.load()
         
@@ -101,6 +99,6 @@ if sorgu:
             st.warning("Aradığınız kriterlere uygun bir tarif bulamadım. Lütfen farklı malzemeler yazmayı deneyin.")
 
 if __name__ == "__main__":
-    # Eğer veritabanı klasörü yoksa sessizce oluştur
+    
     if not os.path.exists(PERSIST_DIRECTORY):
         veritabani_olustur()
