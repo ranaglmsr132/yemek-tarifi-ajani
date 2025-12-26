@@ -34,8 +34,10 @@ def veritabani_olustur():
     else:
         base = "src"
 
-    loader = DirectoryLoader(os.path.join(base, "Tarifler"), glob="*.txt")
-    documents = loader.load()
+
+    from langchain_community.document_loaders import TextLoader, DirectoryLoader
+
+    loader = DirectoryLoader('./belgeler_klasoru/', glob="./*.txt", loader_cls=TextLoader)
     
     if not documents:
         print("⚠️ Tarif dosyası bulunamadı!")
