@@ -36,12 +36,12 @@ def veritabani_olustur():
 
 
    def veritabani_olustur():
-    documents = []  # <--- Buranın başında 4 boşluk (veya 1 TAB) olmalı
-    try:
+       documents = []  # <--- Buranın başında 4 boşluk (veya 1 TAB) olmalı
+       try:
         # Klasör yolunu gerçek klasör adınızla (örneğin 'kaynak') güncelleyin
-        loader = DirectoryLoader('./kaynak/', glob="**/*.txt") 
-        documents = loader.load()
-    except Exception as e:
+            loader = DirectoryLoader('./kaynak/', glob="**/*.txt") 
+            documents = loader.load()
+       except Exception as e:
         import streamlit as st
         st.error(f"Dosyalar yüklenirken hata oluştu: {e}")
         return
