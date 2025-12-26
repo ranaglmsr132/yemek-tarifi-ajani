@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_community.document_loaders import DirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -7,11 +7,10 @@ import re
 import os
 
 # --- AYARLAR ---
-# GitHub yapındaki klasör yolu (src/kaynak)
-TARIFLER_DIR = "src/kaynak" 
+# Klasör ismini tam olarak belirttiğiniz gibi 'Tarifler' yapıyoruz
+HEDEF_KLASOR = "Tarifler"
 PERSIST_DIRECTORY = "chroma_db"
 
-# Embeddings modelini önbelleğe alarak yüklüyoruz
 @st.cache_resource
 def load_embeddings():
     return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -30,21 +29,21 @@ def anahtar_kelimeleri_cikar(sorgu):
     return [k for k in kelimeler if k not in STOP_KELIMELER and len(k) > 2]
 
 def veritabani_olustur():
-    """Arka planda veritabanını oluşturur, kullanıcıya teknik detay göstermez."""
     documents = []
     
-    # Klasör kontrolü
-    if not os.path.exists(TARIFLER_DIR):
-        # Eğer direkt 'kaynak' olarak ana dizindeyse onu dene
-        if os.path.exists("kaynak"):
-            path_to_check = "kaynak"
-        else:
-            return # Sessizce hata yönetimini chatbot içinde yapacağız
+    # Klasör yolunu bul (Ana dizinde mi yoksa src içinde mi?)
+    if os.path.exists(HEDEF_KLASOR):
+        path_to_check = HEDEF_KLASOR
+    elif os.path.exists(os.path.join("src", HEDEF_KLASOR)):
+        path_to_check = os.path.join("src", HEDEF_KLASOR)
     else:
-        path_to_check = TARIFLER_DIR
+        # Hata ayıklama için ekranda kısa bir uyarı bırakalım
+        st.error(f"❌ '{HEDEF_KLASOR}' klasörü GitHub'da bulunamadı!")
+        return
 
     try:
-        loader = DirectoryLoader(path_to_check, glob="**/*.txt")
+        # Daha güvenli olan TextLoader'ı kullanıyoruz
+        loader = DirectoryLoader(path_to_check, glob="**/*.txt", loader_cls=TextLoader)
         documents = loader.load()
         
         if documents:
@@ -55,17 +54,17 @@ def veritabani_olustur():
                 embedding=embeddings, 
                 persist_directory=PERSIST_DIRECTORY
             )
-    except:
-        pass # Teknik hataları kullanıcı arayüzüne basmıyoruz
+            st.success(f"✅ {len(documents)} adet tarif başarıyla yüklendi!")
+    except Exception as e:
+        st.error(f"Yükleme hatası: {e}")
 
 def yemek_tarifi_ajani(sorgu, max_sonuc=5):
-    # Veritabanı yoksa oluştur
     if not os.path.exists(PERSIST_DIRECTORY):
         veritabani_olustur()
 
     try:
         vectordb = Chroma(persist_directory=PERSIST_DIRECTORY, embedding_function=embeddings)
-        docs = vectordb.similarity_search(sorgu, k=20)
+        docs = vectordb.similarity_search(sorgu, k=15)
         
         arananlar = anahtar_kelimeleri_cikar(sorgu)
         kesin_sonuclar = []
@@ -80,33 +79,28 @@ def yemek_tarifi_ajani(sorgu, max_sonuc=5):
     except:
         return []
 
-# --- KULLANICI ARAYÜZÜ (STREAMLIT CHATBOT) ---
-st.set_page_config(page_title="Yemek Asistanı", page_icon="👨‍🍳")
+# --- CHATBOT ARAYÜZÜ ---
+st.set_page_config(page_title="Şef Asistan", page_icon="👩‍🍳")
 
-st.title("👨‍🍳 Yemek Tarifi Asistanı")
-st.markdown("Merhaba! Ben senin dijital şefinim. Elindeki malzemeleri söylersen sana en uygun tarifleri bulabilirim.")
+st.title("👩‍🍳 Akıllı Yemek Asistanı")
+st.write("Tarif defterimdeki verilerle size yardımcı olmaya hazırım.")
 
-# Kullanıcıdan mesaj al
-sorgu = st.text_input("Mesajınızı yazın:", placeholder="Örn: İçinde domates olan tarifler...")
+sorgu = st.text_input("Bugün ne pişirelim?", placeholder="Örn: Tavuklu bir tarif var mı?")
 
 if sorgu:
-    with st.spinner("Tarif defterimi karıştırıyorum..."):
+    with st.spinner("Tariflerimi inceliyorum..."):
         sonuclar = yemek_tarifi_ajani(sorgu)
         
-        st.markdown("### 🤖 Şefin Yanıtı:")
-        
+        st.markdown("### 🤖 Şefin Önerisi:")
         if sonuclar:
-            st.write(f"Harika bir seçim! Aradığın kriterlere uygun **{len(sonuclar)} tarif** buldum:")
-            
             for i, doc in enumerate(sonuclar):
-                st.markdown(f"---")
-                st.markdown(f"**📖 Seçenek {i+1}**")
-                # Tarif içeriğini temiz metin olarak gösteriyoruz
+                st.markdown(f"**Seçenek {i+1}**")
                 st.info(doc.page_content)
+                st.markdown("---")
         else:
-            st.write("Üzgünüm, tarif defterimde buna uygun tam bir eşleşme bulamadım. Malzemeleri değiştirmeyi veya daha genel aramayı deneyebilir misin?")
+            st.warning("Aradığınız kriterlere uygun bir tarif bulamadım. Lütfen farklı malzemeler yazmayı deneyin.")
 
 if __name__ == "__main__":
-    # Veritabanı yoksa ilk seferde sessizce oluşturur
+    # Eğer veritabanı klasörü yoksa sessizce oluştur
     if not os.path.exists(PERSIST_DIRECTORY):
         veritabani_olustur()
