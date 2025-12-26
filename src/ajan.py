@@ -88,3 +88,26 @@ def yemek_tarifi_ajani(sorgu, max_sonuc=5):
 if __name__ == "__main__":
     # Direkt script olarak çalıştırıldığında (opsiyonel)
     veritabani_olustur()
+# --- KULLANICI ARAYÜZÜ (STREAMLIT) ---
+st.title("👨‍🍳 Yapay Zeka Yemek Tarifi Asistanı")
+st.markdown("Elinizdeki malzemeleri yazın veya bir yemek adı arayın!")
+
+# Kullanıcıdan girdi al
+sorgu = st.text_input("Ne pişirmek istersiniz?", placeholder="Örn: Patlıcanlı bir yemek tarifi öner")
+
+if sorgu:
+    with st.spinner("Tarif defterim karıştırılıyor..."):
+        # Senin yazdığın yemek_tarifi_ajani fonksiyonunu çağırıyoruz
+        sonuclar = yemek_tarifi_ajani(sorgu)
+        
+        if sonuclar:
+            st.success(f"{len(sonuclar)} adet uygun tarif bulundu!")
+            for i, doc in enumerate(sonuclar):
+                # Tarif başlığını dosya adından veya içeriğin ilk satırından alabiliriz
+                with st.expander(f"📖 Tarif {i+1}"):
+                    st.write(doc.page_content)
+        else:
+            st.warning("Aradığınız kriterlere uygun bir tarif bulamadım. Farklı kelimelerle denemeye ne dersiniz?")
+
+# Hata ayıklama modunu kapatmak istersen aşağıdaki satırı yorum satırı yapabilirsin
+# st.write(f"Sistem Durumu: Veritabanı hazır.")
