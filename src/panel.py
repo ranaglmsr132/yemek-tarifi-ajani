@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import sys
 
-# src klasörünü Python'un bulabilmesi için sisteme ekliyoruz
+
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
 try:
