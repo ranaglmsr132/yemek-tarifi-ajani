@@ -15,7 +15,7 @@ def load_embeddings():
     return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
 embeddings = load_embeddings()
-
+#Gürültüyü Temizleme
 STOP_KELIMELER = {
     "olan", "tarif", "tarifleri", "tarifler", "yemek", "yemekler",
     "öner", "önerir", "önerisi", "bul", "bulur", "getir",
@@ -62,7 +62,7 @@ def yemek_tarifi_ajani(sorgu, max_sonuc=5):
 
     try:
         vectordb = Chroma(persist_directory=PERSIST_DIRECTORY, embedding_function=embeddings)
-        docs = vectordb.similarity_search(sorgu, k=15)
+        docs = vectordb.similarity_search(sorgu, k=5)
         
         arananlar = anahtar_kelimeleri_cikar(sorgu)
         kesin_sonuclar = []
