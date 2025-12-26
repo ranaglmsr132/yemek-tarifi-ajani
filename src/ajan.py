@@ -35,15 +35,21 @@ def veritabani_olustur():
         base = "src"
 
 
-    def veritabani_olustur():
-    documents = [] # Değişkeni burada tanımlayarak NameError'ı önleyin
+   def veritabani_olustur():
+    documents = []  # <--- Buranın başında 4 boşluk (veya 1 TAB) olmalı
     try:
-        # Klasör yolunun doğruluğundan emin olun (Örn: 'src/veriler' veya './veriler')
-        loader = DirectoryLoader('./veriler_klasorunuz/', glob="**/*.txt") 
+        # Klasör yolunu gerçek klasör adınızla (örneğin 'kaynak') güncelleyin
+        loader = DirectoryLoader('./kaynak/', glob="**/*.txt") 
         documents = loader.load()
     except Exception as e:
+        import streamlit as st
         st.error(f"Dosyalar yüklenirken hata oluştu: {e}")
+        return
     
+    if not documents:
+        import streamlit as st
+        st.warning("Hiç belge bulunamadı. Lütfen klasör yolunu kontrol edin.")
+        return
         return
     # ... geri kalan işlemler
     if not documents:
