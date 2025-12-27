@@ -29,7 +29,7 @@ def anahtar_kelimeleri_cikar(sorgu):
 
 def veritabani_olustur():
     documents = []
-    
+    #Hata Kontrolü
     if os.path.exists(HEDEF_KLASOR):
         path_to_check = HEDEF_KLASOR
     elif os.path.exists(os.path.join("src", HEDEF_KLASOR)):
